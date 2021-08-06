@@ -36,6 +36,7 @@ use Reliese\Database\Eloquent\Model as Eloquent;
  */
 class Company extends Eloquent
 {
+	protected $table = 'companies';
 	protected $casts = [
 		'prefecture_id' => 'int'
 	];

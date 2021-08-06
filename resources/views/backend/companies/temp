@@ -26,7 +26,7 @@
                         </ul>
                     </div>
                     @endif
-                    {{ Form::open(array('route' => $company->form_action, 'method' => 'POST', 'files' => true,'url'=>'../../../../public/uploads/files/' ,'id' => 'company-form')) }}
+                    {{ Form::open(array('route' => $company->form_action, 'method' => 'POST', 'files' => true, 'id' => 'company-form')) }}
                     {{ Form::hidden('id', $company->id, array('id' => 'company_id')) }}
                     
                     <div id="form-name" class="form-group">
@@ -46,7 +46,7 @@
                     <div id="form-email" class="form-group">
                         <div class="col-xs-12 col-sm-12 col-md-3 col-lg-2 col-header">
                             <span class="label label-danger label-required">Required</span>
-                            <strong class="field-title">Email</strong>
+                            <strong class="field-title"Email</strong>
                         </div>
                         <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10 col-content">
                             {{ Form::text('email', $company->email, array('placeholder' => '', 'class' => 'form-control validate[required, maxSize[255]]', 'data-prompt-position' => 'bottomLeft:0,11')) }}
@@ -70,7 +70,7 @@
                             <strong class="field-title">Prefecture</strong>
                         </div>
                         <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10 col-content">
-                            {{ Form::select('prefecture', $prefecture_list,$company->prefecture_id,array('class' => 'form-control m-bot15')) }}
+                            {{ Form::select('prefecture',$company->prefecture_id, array('placeholder' => ' ', 'class' => '', 'data-prompt-position' => 'bottomLeft:0,11')) }}
                         
                         </div>
                     </div>
@@ -155,16 +155,13 @@
                             <strong class="field-title">Image</strong>
                         </div>
                         <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10 col-content">
-                            <input type="file" name="image" id="image" placeholder="Choose file"/>
-                            <p >test</p>                                                       
-
-                            <img id="preview-image-before-upload" src="{{ asset('img/no-image/no-image.jpg') }}"
-                            alt="preview image" style="max-height: 150px;">
+                            {{ Form::file('image',$company->image, array('placeholder' => ' ', 'class' => 'form-control validate[required, minSize[6], maxSize[8]]', 'data-prompt-position' => 'bottomLeft:0,11')) }}
+                            
                         </div>
                     </div>
                     
 
-                    
+
                     <div id="form-button" class="form-group no-border">
                         <div class="col-xs-12 col-sm-12 col-md-12 text-center" style="margin-top: 20px;">
                             <button type="submit" name="submit" id="send" class="btn btn-primary">Submit</button>

@@ -1,9 +1,9 @@
 $(function () {
 
     // init: side menu for current page
-    $('li#menu-users').addClass('menu-open active');
-    $('li#menu-users').find('.treeview-menu').css('display', 'block');
-    $('li#menu-users').find('.treeview-menu').find('.list-users a').addClass('sub-menu-active');
+    $('li#menu-companies').addClass('menu-open active');
+    $('li#menu-companiess').find('.treeview-menu').css('display', 'block');
+    $('li#menu-companies').find('.treeview-menu').find('.list-companies a').addClass('sub-menu-active');
 
     // call tabulator function and create tables
     const TRIANGLE_IMAGE_FOR_FILTER = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAJCAYAAAA/33wPAAAAvklEQVQoFY2QMQqEMBBFv7ERa/EMXkGw11K8QbDXzuN4BHv7QO6ifUgj7v4UAdlVM8Uwf+b9YZJISnlqrfEUZVlinucnBGKaJgghbiHOyLyFKIoCbdvecpyReYvo/Ma2bajrGtbaC58kCdZ1RZ7nl/4/4d5EsO/7nzl7IUtodBexMMagaRrs+06JLMvcNWmaOv2W/C/TMAyD58dxROgSmvxFFMdxoOs6lliWBXEcuzokXRbRoJRyvqqqQvye+QDMDz1D6yuj9wAAAABJRU5ErkJggg==';

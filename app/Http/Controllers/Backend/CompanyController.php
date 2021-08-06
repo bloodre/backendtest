@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\Prefecture;
 use Config;
 
 class CompanyController extends Controller {
@@ -19,6 +20,7 @@ class CompanyController extends Controller {
         return 'companies';
     }
 
+
     /**
      * Validator for companies
      *
@@ -27,16 +29,16 @@ class CompanyController extends Controller {
     protected function validator(array $data, $type) {
         return Validator::make($data, [
                 'name'=> 'required|string|max:255|unique:companies,name,' . $data['id'],
-		'email' => 'required|string|max:100',
+		'email' => 'required|email',
 		'prefecture_id' => 'required|int',
-		'phone' => 'string|min:6|max:255',
+		'phone' => 'string|min:0|max:15',
 		'postcode' => 'required|string|min:7|max:8',
 		'city' => 'required|string|min:0|max:255',
 		'local' => 'required|string|min:6|max:255',
 		'street_address' => 'string|min:0|max:255',
 		'business_hour' => 'string|min:0|max:255',
 		'regular_holiday' => 'string|min:0|max:255',
-		'image' => 'required|string|min:0|max:255',
+		'image' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
 		'fax' => 'string|min:6|max:255',
 		'url' => 'string|min:6|max:255',
 		'license_number' => 'string|min:6|max:255'
@@ -55,11 +57,12 @@ class CompanyController extends Controller {
     public function add()
     {
         $company = new Company();
+        $prefecture_list = Prefecture::pluck('display_name','id');
         $company->form_action = $this->getRoute() . '.create';
         $company->page_title = 'Company Add Page';
         $company->page_type = 'create';
         return view('backend.companies.form', [
-            'company' => $company
+            'company' => $company, 'prefecture_list' =>$prefecture_list
         ]);
     }
 
@@ -74,6 +77,8 @@ class CompanyController extends Controller {
 
         // Validate input, indicate this is 'create' function
         $this->validator($newCompany, 'create')->validate();
+        
+        //$newCompany->image->store('public/uploads/files')
 
         try {
             $company = Company::create($newCompany);
