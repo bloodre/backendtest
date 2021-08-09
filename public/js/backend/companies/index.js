@@ -24,13 +24,20 @@ $(function () {
 
     // Formatter for edit/delete
     var formatActionField = function (row, cell, formatterParams) {
-        return '<form id="form-delete-' + row.getData()['id'] + '" action="' + rootUrl + '/admin/delete/" method="get">' +
-               '<a class="btn btn-primary" href="' + rootUrl + '/admin/edit/' + row.getData()['id'] + '" title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;' +
+        return '<form id="form-delete-' + row.getData()['id'] + '" action="' + rootUrl + '/companies/delete/" method="get">' +
+               '<a class="btn btn-primary" href="' + rootUrl + '/companies/edit/' + row.getData()['id'] + '" title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;' +
                '<input type="hidden" name="id" value="' + row.getData()['id'] + '">' +
                '<input type="hidden" name="delete_flag" value="1">' +
                '<span onclick="javascript:if(confirm(\'Are you sure want to delete this Data？\')) { document.getElementById(\'form-delete-' + row.getData()['id'] + '\').submit(); } return false;" class="btn btn-warning btn-delete" title="削除"><i class="fa fa-trash"></i></span>' +
                '</form>';
     }; // Formatter for edit/delete
+    
+    //list for the prefecture header filter
+    const prefecture_filter = {"":"","北海道":"北海道","青森県":"青森県","岩手県":"岩手県","宮城県":"宮城県","秋田県":"秋田県","山形県":"山形県","福島県":"福島県","茨城県":"茨城県","栃木県":"栃木県",
+    "群馬県":"群馬県","埼玉県":"埼玉県","千葉県":"千葉県","東京都":"東京都","神奈川県":"神奈川県","新潟県":"新潟県","富山県":"富山県","石川県":"石川県","福井県":"福井県","山梨県":"山梨県","長野県":"長野県",
+    "岐阜県":"岐阜県","静岡県":"静岡県","愛知県":"愛知県","三重県":"三重県","滋賀県":"滋賀県","京都府":"京都府","大阪府":"大阪府","兵庫県":"兵庫県","奈良県":"奈良県","和歌山県":"和歌山県","鳥取県":"鳥取県","島根県":"島根県",
+    "岡山県":"岡山県","広島県":"広島県","山口県":"山口県","徳島県":"徳島県","香川県":"香川県","愛媛県":"愛媛県","高知県":"高知県","福岡県":"福岡県","佐賀県":"佐賀県","長崎県":"長崎県","熊本県":"熊本県","大分県":"大分県","宮崎県":"宮崎県","鹿児島県":"鹿児島県","沖縄県":"沖縄県"};
+
 
     // call tabulator function and create tables
     $("#datalist").tabulator({
@@ -55,10 +62,12 @@ $(function () {
             },
         },
         columns: [
-            {title: "ID", field: "id", width: 45, headerFilter: "input", sorter: "number", headerFilterPlaceholder: " "},
-            {title: "Username", field: "username", minwidth: 200, headerFilter: "input", headerFilterPlaceholder: " "},
-            {title: "Name", field: "display_name", width: 150, headerFilter: "input", headerFilterPlaceholder: " "},
-			      {title: "Created At", field: "created_at", width: 150, headerFilter:"input", headerFilterPlaceholder: " "},
+            {title: "ID", field: "id", width: 30, headerFilter: "input", sorter: "number", headerFilterPlaceholder: " "},
+            {title: "Name", field: "name", width: 150, headerFilter: "input", headerFilterPlaceholder: " "},
+            {title: "Email", field: "email", width: 170, headerFilter: "input", headerFilterPlaceholder: " "},
+            {title: "Postcode", field: "postcode", width: 100, headerFilter: "input", headerFilterPlaceholder: " "},
+            {title: "Prefecture", field: "prefecture", width: 110, headerFilter: "select", headerFilterParams:prefecture_filter,headerFilterPlaceholder: " "},
+	    {title: "Address", field: "address", minwidth: 200, headerFilter: "input", headerFilterPlaceholder: " "},
             {title: "Updated At", field: "updated_at", width: 150, headerFilter: "input", headerFilterPlaceholder: " "},
             {title: "Action", field: "action", align: "center", headerFilter: false, width: 100, formatter: formatActionField, headerFilterPlaceholder: " ", headerSort: false, frozen: true}
         ],
@@ -87,7 +96,7 @@ $(function () {
         }
     });
 
-    $('#datalist').tabulator('setData', rootUrl + '/api/admin/users/getUsersTabular');
+    $('#datalist').tabulator('setData', rootUrl + '/api/companies/getCompaniesTabular');
     $('#datalist').tabulator('setLocale', 'ja-jp');
 
     $(window).resize(function(){

@@ -25,5 +25,6 @@ Route::GROUP(['middleware' => ['auth:user']], function() {
 
     // Get User List
     Route::get('/admin/users/getUsersTabular', 'Api\ApiUsersController@getUsersTabular');
-    Route::get('/companies/users/getUsersTabular', 'Api\ApiCompaniesController@getCompaniesTabular');
+    Route::get('/companies/getCompaniesTabular', 'Api\ApiCompaniesController@getCompaniesTabular');
+    Route::get('/postcodes/{postcode}','Api\ApiPostcodesController@getLocation');
 });

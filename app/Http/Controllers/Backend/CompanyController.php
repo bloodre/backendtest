@@ -31,17 +31,17 @@ class CompanyController extends Controller {
                 'name'=> 'required|string|max:255|unique:companies,name,' . $data['id'],
 		'email' => 'required|email',
 		'prefecture_id' => 'required|int',
-		'phone' => 'string|min:0|max:15',
+		'phone' => 'nullable|string|min:0|max:15',
 		'postcode' => 'required|string|min:7|max:8',
 		'city' => 'required|string|min:0|max:255',
-		'local' => 'required|string|min:6|max:255',
-		'street_address' => 'string|min:0|max:255',
-		'business_hour' => 'string|min:0|max:255',
-		'regular_holiday' => 'string|min:0|max:255',
-		'image' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
-		'fax' => 'string|min:6|max:255',
-		'url' => 'string|min:6|max:255',
-		'license_number' => 'string|min:6|max:255'
+		'local' => 'required|string|min:0|max:255',
+		'street_address' => 'nullable|string|min:0|max:255',
+		'business_hour' => 'nullable|string|min:0|max:255',
+		'regular_holiday' => 'nullable|string|min:0|max:255',
+		'image' => 'required|string|min:0|max:255',
+		'fax' => 'nullable|string|min:0|max:255',
+		'url' => 'nullable|string|min:0|max:255',
+		'license_number' => 'nullable|string|min:0|max:255'
         ]);
     }
 
@@ -57,10 +57,11 @@ class CompanyController extends Controller {
     public function add()
     {
         $company = new Company();
-        $prefecture_list = Prefecture::pluck('display_name','id');
+        $prefecture_list = Prefecture::pluck('display_name','id'); // This list is used to create the dropdown select form
         $company->form_action = $this->getRoute() . '.create';
         $company->page_title = 'Company Add Page';
         $company->page_type = 'create';
+        $company->prefecture_id = 1; //default selection
         return view('backend.companies.form', [
             'company' => $company, 'prefecture_list' =>$prefecture_list
         ]);
@@ -72,18 +73,25 @@ class CompanyController extends Controller {
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function create(Request $request) {
+    public function create(Request $request) {  
+    	//Checking if the file is indeed a picture or not     
+        $request->validate(['image' => 'required|mimes:jpeg,jpg,png',]);
+        
         $newCompany = $request->all();
-
+	$file = $request->file('image');
+	
+	// The picture is stored in a folder and the name uploaded to the database
+        $newCompany['image'] = $file->getClientOriginalName();
+        
+        
         // Validate input, indicate this is 'create' function
         $this->validator($newCompany, 'create')->validate();
-        
-        //$newCompany->image->store('public/uploads/files')
 
         try {
             $company = Company::create($newCompany);
             if ($company) {
-                // Create is successful, back to list
+                // Create is successful, upload image and back to the list
+                $file->move(public_path('uploads/files'),'company_'.$company->id.'.'.$request->image->extension());
                 return redirect()->route($this->getRoute())->with('success', Config::get('const.SUCCESS_CREATE_MESSAGE'));
             } else {
                 // Create is failed
@@ -105,10 +113,11 @@ class CompanyController extends Controller {
         $company = Company::find($id);
         $company->form_action = $this->getRoute() . '.update';
         $company->page_title = 'Company Edit Page';
+        $prefecture_list = Prefecture::pluck('display_name','id'); // Once again, we want this list for the dropdown select form
         // Add page type here to indicate that the form.blade.php is in 'edit' mode
         $company->page_type = 'edit';
         return view('backend.companies.form', [
-            'company' => $company
+            'company' => $company,'prefecture_list' =>$prefecture_list
         ]);
     }
 
@@ -121,12 +130,39 @@ class CompanyController extends Controller {
      */
     public function update(Request $request) {
         $newCompany = $request->all();
+        $newPicture = False;
+        
+        // We check if a new picture has been uploaded or not
+        if(isset($newCompany['image'])){ 
+        	$request->validate(['image' => 'required|mimes:jpeg,jpg,png',]);
+        	$newPicture = True;
+        	$file = $request->file('image');
+        	
+        	$newCompany['image'] = $file->getClientOriginalName();
+        }
+        
         try {
             $currentCompany = Company::find($request->get('id'));
-            if ($currentCompany) {               
+            if ($currentCompany) {
+            	// If no picture has been uploaded, the picture name is therefore the same
+            	if(!$newPicture){
+            		$newCompany['image'] = $currentCompany['image'];
+            	}               
                 $this->validator($newCompany, 'update')->validate();
                 }
-
+                
+		// Delete previous picture (if there is one)
+		if($newPicture){
+			if(file_exists(public_path('uploads/files/').'company_'.$currentCompany->id.'.'.pathinfo($currentCompany->image)['extension'])){
+				unlink(public_path('uploads/files/').'company_'.$currentCompany->id.'.'.pathinfo($currentCompany->image)['extension']);
+			}
+			// The previous condition is failed only when the extension is .jpeg (path_info returns jpg)
+			else{ 
+				unlink(public_path('uploads/files/').'company_'.$currentCompany->id.'.jpeg');
+			}
+			// Upload new picture
+			$file->move(public_path('uploads/files'),'company_'.$currentCompany->id.'.'.$request->image->extension());
+		}
                 // Update company
                 $currentCompany->update($newCompany);
                 // If update is successful
@@ -143,7 +179,15 @@ class CompanyController extends Controller {
             $company = Company::find($request->get('id'));
             // If to-delete company is not the one currently logged in, proceed with delete attempt
             
-            // Delete user
+
+            // Delete company picture
+            if(file_exists(public_path('uploads/files/').'company_'.$company->id.'.'.pathinfo($company->image)['extension'])){
+            	unlink(public_path('uploads/files/').'company_'.$company->id.'.'.pathinfo($company->image)['extension']);
+            }
+            else{
+            	unlink(public_path('uploads/files/').'company_'.$company->id.'.jpeg');
+            }
+            // Delete company
             $company->delete();
             
             // If delete is successful
