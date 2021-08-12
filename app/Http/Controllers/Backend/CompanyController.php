@@ -235,15 +235,5 @@ class CompanyController extends Controller {
         }
     }
     
-    public function findPicturePath($username){
-	$files = scandir(public_path('uploads/files/temp'));
-	foreach ($files as $temp_file){
-		$basename = pathinfo($temp_file)['basename'];
-		if(substr($basename,0,strlen($username)+10) == $username.'_temp_read'){
-			return public_path('uploads/files/temp/').$username.'_temp'.explode('_temp_read', $basename)[1];
-		}
-	}
-	return public_path('uploads/files/').'company_'.($this->id).'.'.pathinfo($this->image)['extension'];   
-    }
 
 }
