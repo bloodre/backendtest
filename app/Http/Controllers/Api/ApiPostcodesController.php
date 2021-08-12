@@ -14,14 +14,21 @@ class ApiPostcodesController extends Controller {
      *
      */
     public function getLocation($postcode) {
+    	
 
-        $location_info = Postcode::where('postcode','=', $postcode)->first(); // Using the postcode, we find all the information we need
-        // We need the id of the prefecture and therefore access the prefectures database
-        $prefecture_id = Prefecture::pluck('id','display_name')[$location_info->prefecture];
-
-
-        // We put all the needed information in an array and send it
-        $location = array('prefecture' => $prefecture_id, 'city' => $location_info->city, 'local' => $location_info->local);
+        $location_info = Postcode::where('postcode','=', $postcode)->first(); // Using the postcode, we find all the information we need    
+        // We check if the search was succesfull or not
+        if(isset($location_info->prefecture)){
+        	// We need the id of the prefecture and therefore access the prefectures database
+        	$prefecture_id = Prefecture::pluck('id','display_name')[$location_info->prefecture];
+        	$location = array('prefecture' => $prefecture_id, 'city' => $location_info->city, 'local' => $location_info->local);
+        }
+        else{
+        	// We send a null response if the search has failed
+        	$location = array('prefecture' => null, 'city' => null, 'local' => null);
+        }
+        
+        
         return response()->json($location);
     }
 

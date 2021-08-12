@@ -111,7 +111,7 @@
                             <strong class="field-title">Business hours</strong>
                         </div>
                         <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10 col-content">
-                            {{ Form::text('business_hours',$company->business_hours, array('placeholder' => ' ', 'class' => 'form-control validate[ minSize[0], maxSize[255]]', 'data-prompt-position' => 'bottomLeft:0,11')) }}
+                            {{ Form::text('business_hour',$company->business_hour, array('placeholder' => ' ', 'class' => 'form-control validate[ minSize[0], maxSize[255]]', 'data-prompt-position' => 'bottomLeft:0,11')) }}
                         </div>
                     </div>                    
                     
@@ -162,12 +162,9 @@
 			    @if($company->page_type == 'create')
 			    <p id="upload_text" style="color:Tomato;">ファイルをアップロードして下さい（推奨サイズ：1280 x 720;5MBまで）</p> 
                             <img id="preview_image" src="{{ asset('img/no-image/no-image.jpg') }}" alt="preview image" style="max-height: 150px;">
-                            @elseif(pathinfo($company->image)['extension'] == "jpg")
-                            <p id="upload_text" style="color:Tomato;">画像の変更を希望する場合は、ファイルをお選びください</p> 
-                            <img id="preview_image" src="{{ asset('uploads/files/company_'.$company->id.'.jpeg') }}" alt="preview image" style="max-height: 150px;">
                             @else
-                            <p id="upload_text" style="color:Tomato;">画像の変更を希望する場合は、ファイルをお選びください</p> 
-                            <img id="preview_image" src="{{ asset('uploads/files/company_'.$company->id.'.'.pathinfo($company->image)['extension']) }}" alt="preview image" style="max-height: 150px;">
+                            <p id="upload_text" style="color:Tomato;">画像の変更を希望する場合は、ファイルをお選びください</p>
+                            <img id="preview_image" src= "{{ asset('uploads/files/company_'.$company->id.'.'.pathinfo($company->image)['extension']) }}"  alt="preview image" style="max-height: 150px;">
                             @endif                           
                         </div>
                     </div>

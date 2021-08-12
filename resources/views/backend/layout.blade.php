@@ -87,7 +87,7 @@
                             <img src="{{ asset('img/ic_profile.png') }}" class="img-circle" alt="User Image">
                         </div>
                         <div class="pull-left info">
-                            <p>{{ Auth::user()->username }}</p>
+                            <p id="username_text">{{ Auth::user()->username }}</p>
                             <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
                         </div>
                     </div>

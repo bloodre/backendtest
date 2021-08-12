@@ -13,11 +13,8 @@ $(function () {
     $('[data-toggle="tooltip"]').tooltip({
         container: 'body'
     });
-    
 
 });
-// We fetch the username from the layout and make it a global variable
- var username = document.getElementById("username_text").textContent;
 
 
 //image preview
@@ -44,81 +41,32 @@ $(function () {
 		reader.onload = function (e) {
 		    $("#preview_image")
 		            .attr('src', e.target.result)
-		            // Used to conserve the picture if the page is reloaded
-		            sessionStorage.setItem("previewImageData", e.target.result);
 
 		};
+	 
 		reader.readAsDataURL(input.files[0]);
 	}
     }
  }
- // Used to reload the picture on page reload or submit
- window.onload = function() {
-    // boolean variable telling us if the page has been reloaded or not
-    const pageAccessedByReload = (
-    (window.performance.navigation && window.performance.navigation.type === 1) ||
-    window.performance
-      .getEntriesByType('navigation')
-      .map((nav) => nav.type)
-      .includes('reload')
-    );
-    // Useful variables
-    upload_text = document.getElementById("upload_text");
-    previewImage = sessionStorage.getItem("previewImageData");
-    
-    if (document.getElementById("image").value){
-	upload_text.style.color = "green";
- 	upload_text.innerHTML = "アップロードしました";    
-        document.getElementById("preview_image").src = previewImage;
-    }
-    else if(!pageAccessedByReload){
-	$.get(window.location.origin+"/api/companies/tempPicture/"+username,function(data){
-		if(data == "keep"){
-			// Load the the preview picture
-			upload_text.style.color = "green";
-		 	upload_text.innerHTML = "アップロードしました";    
-			document.getElementById("preview_image").src = previewImage;
-		}
-	})
-	.fail(function(error) {
-        	console.log(error);
-	});
-    }
-    // We check if there is a image in temp to display through a request
-    else if(pageAccessedByReload){
-        $.get(window.location.origin+"/api/companies/tempRefresh/"+username,function(data){
-        console.log(data);
-		if(data == "display"){
-			//Fill the text input with the result of the search
-			upload_text.style.color = "green";
-		 	upload_text.innerHTML = "アップロードしました";    
-			document.getElementById("preview_image").src = previewImage;
-		}
-	})
-	.fail(function(error) {
-        	console.log(error);
-	});
-    }
-    
-
-}
-
- 	
  
  //Postcode search script
  function fillLocation(){
  	postcode = document.getElementById("postcode").value.replace(/\D/g,''); //The character '-' is removed if it was written
- 	document.getElementById("postcode").value = postcode
-
- 	
- 	// Give the value 0 to postcode if it is empty. It prevents the request from crashing.
- 	if(postcode.length == 0){postcode = 0;}
 
 	// We create our URL for the request 
  	const urlReq = window.location.origin+"/api/postcodes/"+postcode;
 
-
-	$.get(urlReq,function(data){
+	fetch(urlReq, {
+        method: 'GET',
+        mode:'no-cors',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            }
+        })
+	.then(resp=>resp.json())
+	.then(function(data){
+		console.log(data);
 		// Checking the prefecture information is enough to know that all the information was collected
 		if(data.prefecture !== null){
 			//Fill the text input with the result of the search
@@ -129,7 +77,7 @@ $(function () {
 			document.getElementById("postcode_text").textContent = "検索出来ませんでした";
 		}		
 	})
-	.fail(function(error) {
+	.catch(function(error) {
         	console.log(error);
 	});
 		

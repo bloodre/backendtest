@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Prefecture;
+use App\Models\User;
 use Config;
 
 class CompanyController extends Controller {
@@ -73,16 +74,37 @@ class CompanyController extends Controller {
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function create(Request $request) {  
-    	//Checking if the file is indeed a picture or not     
-        $request->validate(['image' => 'required|mimes:jpeg,jpg,png',]);
+    public function create(Request $request) {
+        $newCompany = $request->all();  
+	$username = Auth::user()->username; // Used for handling failed submit requests
         
-        $newCompany = $request->all();
-	$file = $request->file('image');
-	
-	// The picture is stored in a folder and the name uploaded to the database
-        $newCompany['image'] = $file->getClientOriginalName();
+        // We check if a new picture has been uploaded or not
+        if(isset($newCompany['image'])){ 
+        	$request->validate(['image' => 'required|mimes:jpeg,jpg,png',]);
+        	$file = $request->file('image');
+        	
+        	$newCompany['image'] = $file->getClientOriginalName();
+        	
+        	// We save the picture in the temp folder in case the request fails
+        	$file->move(public_path('uploads/files/temp'),$username.'_temp'.$newCompany['image']);
+        } // If it has not been uploaded, we check if there is a file in the temp folder from a failed request
+        else {
+		$files = scandir(public_path('uploads/files/temp'));
+		foreach ($files as $temp_file){
+			$basename = pathinfo($temp_file)['basename'];
+			if(substr($basename,0,strlen($username)+10) == $username.'_temp_read'){
+				// We reset the name of the file so that it may not be deleted if the request fails
+				rename(public_path('uploads/files/temp/').$basename, 
+				public_path('uploads/files/temp/').$username.'_temp'.explode('_temp_read', $basename)[1]);
+				
+				// We retrieve the original filename from the picture in temp
+				$newCompany['image'] = explode('_temp_read', $basename)[1];
+				
+			}
+		}
+        }
         
+    
         
         // Validate input, indicate this is 'create' function
         $this->validator($newCompany, 'create')->validate();
@@ -90,9 +112,12 @@ class CompanyController extends Controller {
         try {
             $company = Company::create($newCompany);
             if ($company) {
-                // Create is successful, upload image and back to the list
-                $file->move(public_path('uploads/files'),'company_'.$company->id.'.'.$request->image->extension());
-                return redirect()->route($this->getRoute())->with('success', Config::get('const.SUCCESS_CREATE_MESSAGE'));
+                // Upload image and back to the list
+
+		rename(public_path('uploads/files/temp/').$username.'_temp'.$newCompany['image'], 
+		public_path('uploads/files/').'company_'.$company->id.'.'.pathinfo($newCompany['image'])['extension']);
+
+		return redirect()->route($this->getRoute())->with('success', Config::get('const.SUCCESS_CREATE_MESSAGE'));
             } else {
                 // Create is failed
                 return redirect()->route($this->getRoute())->with('error', Config::get('const.FAILED_CREATE_MESSAGE'));
@@ -131,6 +156,7 @@ class CompanyController extends Controller {
     public function update(Request $request) {
         $newCompany = $request->all();
         $newPicture = False;
+        $username = Auth::user()->username;
         
         // We check if a new picture has been uploaded or not
         if(isset($newCompany['image'])){ 
@@ -139,6 +165,25 @@ class CompanyController extends Controller {
         	$file = $request->file('image');
         	
         	$newCompany['image'] = $file->getClientOriginalName();
+        	// We move the picture to the temp folder
+        	$file->move(public_path('uploads/files/temp'),$username.'_temp'.$newCompany['image']);
+        }
+        // We check if there is a picture in temp
+        else {
+		$files = scandir(public_path('uploads/files/temp'));
+		foreach ($files as $temp_file){
+			$basename = pathinfo($temp_file)['basename'];
+			if(substr($basename,0,strlen($username)+10) == $username.'_temp_read'){
+				// We reset the name of the file so that it may not be deleted if the request fails
+				rename(public_path('uploads/files/temp/').$basename, 
+				public_path('uploads/files/temp/').$username.'_temp'.explode('_temp_read', $basename)[1]);
+				
+				// We retrieve the original filename from the picture in temp
+				$newCompany['image'] = explode('_temp_read', $basename)[1];
+				$newPicture = True;
+				
+			}
+		}
         }
         
         try {
@@ -149,24 +194,19 @@ class CompanyController extends Controller {
             		$newCompany['image'] = $currentCompany['image'];
             	}               
                 $this->validator($newCompany, 'update')->validate();
-                }
-                
-		// Delete previous picture (if there is one)
+
+		// Delete previous picture and upload new one (if there is the need to)
 		if($newPicture){
-			if(file_exists(public_path('uploads/files/').'company_'.$currentCompany->id.'.'.pathinfo($currentCompany->image)['extension'])){
-				unlink(public_path('uploads/files/').'company_'.$currentCompany->id.'.'.pathinfo($currentCompany->image)['extension']);
-			}
-			// The previous condition is failed only when the extension is .jpeg (path_info returns jpg)
-			else{ 
-				unlink(public_path('uploads/files/').'company_'.$currentCompany->id.'.jpeg');
-			}
-			// Upload new picture
-			$file->move(public_path('uploads/files'),'company_'.$currentCompany->id.'.'.$request->image->extension());
+			unlink(public_path('uploads/files/').'company_'.$currentCompany->id.'.'.pathinfo($currentCompany['image'])['extension']);
+			rename(public_path('uploads/files/temp/').$username.'_temp'.$newCompany['image'], 
+			public_path('uploads/files/').'company_'.$currentCompany->id.'.'.pathinfo($newCompany['image'])['extension']);
 		}
+
                 // Update company
                 $currentCompany->update($newCompany);
                 // If update is successful
                 return redirect()->route($this->getRoute())->with('success', Config::get('const.SUCCESS_UPDATE_MESSAGE'));
+            }
         } catch (Exception $e) {
             // If update is failed
             return redirect()->route($this->getRoute())->with('error', Config::get('const.FAILED_UPDATE_MESSAGE'));
@@ -181,12 +221,8 @@ class CompanyController extends Controller {
             
 
             // Delete company picture
-            if(file_exists(public_path('uploads/files/').'company_'.$company->id.'.'.pathinfo($company->image)['extension'])){
-            	unlink(public_path('uploads/files/').'company_'.$company->id.'.'.pathinfo($company->image)['extension']);
-            }
-            else{
-            	unlink(public_path('uploads/files/').'company_'.$company->id.'.jpeg');
-            }
+            unlink(public_path('uploads/files/').'company_'.$company->id.'.'.pathinfo($company->image)['extension']);
+
             // Delete company
             $company->delete();
             
@@ -197,6 +233,17 @@ class CompanyController extends Controller {
             // If delete is failed
             return redirect()->route($this->getRoute())->with('error', Config::get('const.FAILED_DELETE_MESSAGE'));
         }
+    }
+    
+    public function findPicturePath($username){
+	$files = scandir(public_path('uploads/files/temp'));
+	foreach ($files as $temp_file){
+		$basename = pathinfo($temp_file)['basename'];
+		if(substr($basename,0,strlen($username)+10) == $username.'_temp_read'){
+			return public_path('uploads/files/temp/').$username.'_temp'.explode('_temp_read', $basename)[1];
+		}
+	}
+	return public_path('uploads/files/').'company_'.($this->id).'.'.pathinfo($this->image)['extension'];   
     }
 
 }
