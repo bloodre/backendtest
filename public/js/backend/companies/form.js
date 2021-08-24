@@ -16,8 +16,9 @@ $(function () {
     
 
 });
-// We fetch the username from the layout and make it a global variable
+// We fetch the username and root and make them a global variable
  var username = document.getElementById("username_text").textContent;
+ var root = window.location.href.split("/companies")[0];
 
 
 //image preview
@@ -72,7 +73,7 @@ $(function () {
         document.getElementById("preview_image").src = previewImage;
     }
     else if(!pageAccessedByReload){
-	$.get(window.location.origin+"/api/companies/tempPicture/"+username,function(data){
+	$.get(root+"/api/companies/tempPicture/"+username,function(data){
 		if(data == "keep"){
 			// Load the the preview picture
 			upload_text.style.color = "green";
@@ -86,8 +87,7 @@ $(function () {
     }
     // We check if there is a image in temp to display through a request
     else if(pageAccessedByReload){
-        $.get(window.location.origin+"/api/companies/tempRefresh/"+username,function(data){
-        console.log(data);
+        $.get(root+"/api/companies/tempRefresh/"+username,function(data){
 		if(data == "display"){
 			//Fill the text input with the result of the search
 			upload_text.style.color = "green";
@@ -115,7 +115,7 @@ $(function () {
  	if(postcode.length == 0){postcode = 0;}
 
 	// We create our URL for the request 
- 	const urlReq = window.location.origin+"/api/postcodes/"+postcode;
+ 	const urlReq = root+"/api/postcodes/"+postcode;
 
 
 	$.get(urlReq,function(data){
